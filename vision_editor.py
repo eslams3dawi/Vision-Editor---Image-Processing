@@ -28,14 +28,30 @@ def adjust_brightness_contrast(image, brightness=0, contrast=1.0):
 def zoom_nearest(image, scale=2.0):
     """Geometric: Zoom using Nearest Neighbor interpolation."""
     h, w = image.shape[:2]
-    new_h, new_w = int(h * scale), int(w * scale)
-    return cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_NEAREST)
+    new_h, new_w = max(1, int(h * scale)), max(1, int(w * scale))
+    resized = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_NEAREST)
+    if scale > 1.0:
+        start_y, start_x = (new_h - h) // 2, (new_w - w) // 2
+        return resized[start_y:start_y+h, start_x:start_x+w]
+    elif scale < 1.0:
+        top, left = (h - new_h) // 2, (w - new_w) // 2
+        bottom, right = h - new_h - top, w - new_w - left
+        return cv2.copyMakeBorder(resized, top, bottom, left, right, cv2.BORDER_CONSTANT, value=[0, 0, 0])
+    return resized
 
 def zoom_bilinear(image, scale=2.0):
     """Geometric: Zoom using Bilinear interpolation."""
     h, w = image.shape[:2]
-    new_h, new_w = int(h * scale), int(w * scale)
-    return cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+    new_h, new_w = max(1, int(h * scale)), max(1, int(w * scale))
+    resized = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+    if scale > 1.0:
+        start_y, start_x = (new_h - h) // 2, (new_w - w) // 2
+        return resized[start_y:start_y+h, start_x:start_x+w]
+    elif scale < 1.0:
+        top, left = (h - new_h) // 2, (w - new_w) // 2
+        bottom, right = h - new_h - top, w - new_w - left
+        return cv2.copyMakeBorder(resized, top, bottom, left, right, cv2.BORDER_CONSTANT, value=[0, 0, 0])
+    return resized
 
 def rotate_image(image, angle=45):
     """Geometric: Rotate image by given angle."""
